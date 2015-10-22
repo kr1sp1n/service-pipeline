@@ -4,7 +4,8 @@
   "description": "Pipelines as a service",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "$(npm bin)/node-dev server.js"
   },
   "repository": {
     "type": "git",
@@ -20,5 +21,16 @@
   "bugs": {
     "url": "https://github.com/kr1sp1n/service-pipeline/issues"
   },
-  "homepage": "https://github.com/kr1sp1n/service-pipeline"
+  "homepage": "https://github.com/kr1sp1n/service-pipeline",
+  "dependencies": {
+    "body-parser": "^1.14.1",
+    "express": "^4.13.3",
+    "lodash": "^3.10.1",
+    "mustache": "^2.2.0",
+    "request": "^2.65.0",
+    "uuid": "^2.0.1"
+  },
+  "devDependencies": {
+    "node-dev": "^2.7.1"
+  }
 }
