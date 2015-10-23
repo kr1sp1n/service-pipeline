@@ -19,7 +19,10 @@ var p1 = {
   name: 'Create Github Repo',
   steps: [
     {
-      template: { uri: 'https://raw.githubusercontent.com/kr1sp1n/http-request-templates/master/create_github_repo.txt' }
+      template: { uri: 'https://raw.githubusercontent.com/kr1sp1n/http-request-templates/master/github/create_github_repo.txt' }
+    },
+    {
+      template: { uri: 'https://raw.githubusercontent.com/kr1sp1n/http-request-templates/master/cloud66/get_all_stacks.txt' }
     }
   ]
 }
@@ -90,6 +93,7 @@ router.get('/:id', findPipeline, function (req, res) {
 
 router.post('/done', parseCID, function (req, res) {
   console.log('DONE', req.cid)
+  console.log(req.body)
   res.send()
 })
 
@@ -106,27 +110,41 @@ router.put('/:id', findPipeline, parseCID, findTrigger, function (req, res) {
       cid: req.cid,
       data: req.body.data,
       callbacks: req.body.callbacks,
-      steps: _.cloneDeep(req.pipeline.steps)
+      steps: _.cloneDeep(req.pipeline.steps),
+      step_index: 0,
+      steps_done: [],
+      steps_pending: _.cloneDeep(req.pipeline.steps)
     }
     // assume it is the first call
     triggers.push(req.trigger)
     console.log('start pipeline triggered with cid: ', req.cid)
   } else {
-    console.log('trigger found!!')
     console.log('proceed pipeline triggered with cid:', req.cid)
+    var last_step = req.trigger.steps[req.trigger.step_index]
+    last_step.response = req.body
+    req.trigger.steps_done.push(last_step)
+    req.trigger.step_index += 1
   }
   res.send()
-  var step = req.trigger.steps.pop()
+
+  var step = req.trigger.steps_pending.shift()
 
   // check if more steps
   if (!step) {
     console.log('no more steps!')
     console.log('do final callback')
+    // console.log(req.trigger.steps_done[0].response.body)
+
     var opts = req.trigger.callbacks['success']
     http_request(opts)
   } else {
-    request(step.template, function (err, response, body) {
+    var opts2 = step.template
+    opts2.json = false
+    request(opts2, function (err, response, body) {
       if (err) { console.log(err) }
+      if (_.isObject(body)) {
+        body = JSON.stringify(body)
+      }
       var result = Mustache.render(body, req.trigger.data)
       result = JSON.parse(result)
       var headers = {
@@ -134,7 +152,7 @@ router.put('/:id', findPipeline, parseCID, findTrigger, function (req, res) {
       }
       // mid-step callbacks
       result.callbacks = {
-        '201': {
+        'success': {
           uri: [req.app.get('endpoint'), req.pipeline.id].join('/'),
           method: 'PUT',
           headers: headers
