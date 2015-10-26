@@ -1,0 +1,9 @@
+{
+ "id": "create_github_org_team",
+ "name": "Create Github Org Team",
+ "steps": [
+   {
+     "template": { "uri": "https://raw.githubusercontent.com/kr1sp1n/http-request-templates/master/github/create_github_org_team.txt" }
+   }
+ ]
+}

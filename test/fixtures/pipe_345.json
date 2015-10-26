@@ -1,0 +1,9 @@
+{
+ "id": "345",
+ "name": "Delete Github Repo",
+ "steps": [
+   {
+     "template": { "uri": "https://raw.githubusercontent.com/kr1sp1n/http-request-templates/master/github/delete_github_repo.txt" }
+   }
+ ]
+}

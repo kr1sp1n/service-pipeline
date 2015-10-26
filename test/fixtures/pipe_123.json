@@ -1,0 +1,12 @@
+{
+ "id": "123",
+ "name": "Create Github Repo",
+ "steps": [
+   {
+     "template": { "uri": "https://raw.githubusercontent.com/kr1sp1n/http-request-templates/master/github/create_github_repo.txt" }
+   },
+   {
+     "template": { "uri": "https://raw.githubusercontent.com/kr1sp1n/http-request-templates/master/cloud66/get_all_stacks.txt" }
+   }
+ ]
+}

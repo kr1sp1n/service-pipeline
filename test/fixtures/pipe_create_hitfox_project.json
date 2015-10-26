@@ -1,0 +1,15 @@
+{
+ "id": "create_hitfox_project",
+ "name": "Create HitFox Project",
+ "steps": [
+   {
+     "template": { "uri": "https://raw.githubusercontent.com/kr1sp1n/http-request-templates/master/github/create_github_org_repo.txt" }
+   },
+   {
+     "template": { "uri": "https://raw.githubusercontent.com/kr1sp1n/http-request-templates/master/github/create_github_org_team.txt" }
+   },
+   {
+     "template": { "uri": "https://raw.githubusercontent.com/kr1sp1n/http-request-templates/master/github/create_github_repo_branch.txt" }
+   }
+ ]
+}

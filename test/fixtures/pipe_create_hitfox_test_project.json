@@ -1,0 +1,9 @@
+{
+ "id": "create_hitfox_test_project",
+ "name": "Create HitFox Test Project",
+ "steps": [
+   {
+     "template": { "uri": "https://raw.githubusercontent.com/kr1sp1n/http-request-templates/master/hitfox/create_hitfox_test_project.txt" }
+   }
+ ]
+}
