@@ -1,0 +1,28 @@
+{
+ "id": "create_github_develop_branch",
+ "name": "Create Github Develop Branch",
+ "globals": {
+   "github": {
+     "user_agent": "My awesome pipeline"
+   }
+ },
+ "steps": [
+   {
+     "template": { "uri": "https://raw.githubusercontent.com/kr1sp1n/http-request-templates/master/github/get_github_repo_branch.txt" },
+     "defaults": {
+       "github": {
+         "repo_branch": "master"
+       }
+     },
+     "response": { "sha": "{{body.commit.sha}}"}
+   },
+   {
+     "template": { "uri": "https://raw.githubusercontent.com/kr1sp1n/http-request-templates/master/github/create_github_repo_branch.txt" },
+     "defaults": {
+       "github": {
+         "repo_branch": "develop"
+       }
+     }
+   }
+ ]
+}

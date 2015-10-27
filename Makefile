@@ -27,6 +27,7 @@ clean_seeds:
 	@curl -X DELETE $(PIPELINE_ENDPOINT)/create_github_org_team
 	@curl -X DELETE $(PIPELINE_ENDPOINT)/create_hitfox_project
 	@curl -X DELETE $(PIPELINE_ENDPOINT)/create_hitfox_test_project
+	@curl -X DELETE $(PIPELINE_ENDPOINT)/create_github_develop_branch
 
 seeds:
 	@curl -X POST $(PIPELINE_ENDPOINT)/ -H "Content-Type: application/json" -d @test/fixtures/pipe_123.json
@@ -35,5 +36,6 @@ seeds:
 	@curl -X POST $(PIPELINE_ENDPOINT)/ -H "Content-Type: application/json" -d @test/fixtures/pipe_create_github_org_team.json
 	@curl -X POST $(PIPELINE_ENDPOINT)/ -H "Content-Type: application/json" -d @test/fixtures/pipe_create_hitfox_project.json
 	@curl -X POST $(PIPELINE_ENDPOINT)/ -H "Content-Type: application/json" -d @test/fixtures/pipe_create_hitfox_test_project.json
+	@curl -X POST $(PIPELINE_ENDPOINT)/ -H "Content-Type: application/json" -d @test/fixtures/pipe_create_github_develop_branch.json
 
 .PHONY: all install clean

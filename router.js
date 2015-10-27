@@ -37,7 +37,8 @@ var validatePipeline = function (req, res, next) {
     id: id,
     name: name,
     description: body.description,
-    steps: body.steps
+    steps: body.steps,
+    globals: body.globals
   }
   next()
 }
@@ -106,11 +107,12 @@ router.post('/fail', parseCID, function (req, res) {
 // PUT something in a pipeline
 router.put('/:id', findPipeline, parseCID, findTrigger, function (req, res) {
   debug('pipeline %s triggered', req.pipeline.name)
+  var globals = req.pipeline.globals || {}
   if (!req.trigger) {
     req.trigger = {
       cid: req.cid,
-      data: req.body.data,
-      callbacks: req.body.callbacks,
+      data: _.cloneDeep(req.body.data),
+      callbacks: _.cloneDeep(req.body.callbacks),
       steps: _.cloneDeep(req.pipeline.steps),
       step_index: 0,
       steps_done: [],
@@ -127,9 +129,7 @@ router.put('/:id', findPipeline, parseCID, findTrigger, function (req, res) {
     req.trigger.step_index += 1
   }
   res.send(req.trigger)
-
   var step = req.trigger.steps_pending.shift()
-
   // check if more steps
   if (!step) {
     debug('No more steps!')
@@ -145,9 +145,10 @@ router.put('/:id', findPipeline, parseCID, findTrigger, function (req, res) {
         debug('body is object')
         body = JSON.stringify(body)
       }
-      debug(req.trigger.data)
+      var defaults = step.defaults || {}
+      var data = _.defaultsDeep(_.cloneDeep(req.body), _.cloneDeep(req.trigger.data), defaults, globals)
       var template = Handlebars.compile(body)
-      var result = template(req.trigger.data)
+      var result = template(data)
       debug(result)
       try {
         result = JSON.parse(result)
@@ -162,7 +163,8 @@ router.put('/:id', findPipeline, parseCID, findTrigger, function (req, res) {
         'success': {
           uri: [req.app.get('endpoint'), req.pipeline.id].join('/'),
           method: 'PUT',
-          headers: headers
+          headers: headers,
+          response: step.response
         },
         'fail': _.assign(req.trigger.callbacks['fail'], { headers: headers })
       }
