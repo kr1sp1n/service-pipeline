@@ -1,15 +1,41 @@
 {
  "id": "create_hitfox_project",
  "name": "Create HitFox Project",
+ "globals": {
+   "github": {
+     "user_agent": "My awesome pipeline",
+     "org": "HitFox",
+     "repo_owner": "HitFox"
+   }
+ },
  "steps": [
    {
-     "template": { "uri": "https://raw.githubusercontent.com/kr1sp1n/http-request-templates/master/github/create_github_org_repo.txt" }
+     "template": { "uri": "https://raw.githubusercontent.com/kr1sp1n/http-request-templates/master/github/create_github_org_repo.txt" },
+     "defaults": {
+       "github": {
+         "org": "HitFox"
+       }
+     }
    },
    {
      "template": { "uri": "https://raw.githubusercontent.com/kr1sp1n/http-request-templates/master/github/create_github_org_team.txt" }
    },
    {
-     "template": { "uri": "https://raw.githubusercontent.com/kr1sp1n/http-request-templates/master/github/create_github_repo_branch.txt" }
+     "template": { "uri": "https://raw.githubusercontent.com/kr1sp1n/http-request-templates/master/github/get_github_repo_branch.txt" },
+     "defaults": {
+       "github": {
+         "repo_branch": "master"
+       }
+     },
+     "response": { "sha": "{{body.commit.sha}}"}
+   },
+   {
+     "template": { "uri": "https://raw.githubusercontent.com/kr1sp1n/http-request-templates/master/github/create_github_repo_branch.txt" },
+     "defaults": {
+       "github": {
+         "repo_branch": "develop"
+       }
+     }
    }
  ]
 }
