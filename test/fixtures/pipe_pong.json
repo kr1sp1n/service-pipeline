@@ -1,0 +1,18 @@
+{
+ "id": "pong",
+ "name": "Pong",
+ "steps": [
+   {
+     "template": "{\"uri\": \"{{delay_service}}/?delay={{delay}}\"}",
+     "defaults": {
+       "delay_service": "http://localhost:5005",
+       "delay": 8000
+     },
+     "response": {
+       "data": {
+         "delay": "{{body.delay}}"
+       }
+     }
+   }
+ ]
+}

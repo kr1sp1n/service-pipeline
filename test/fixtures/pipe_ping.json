@@ -1,0 +1,10 @@
+{
+ "id": "ping",
+ "name": "Ping",
+ "steps": [
+   {
+     "template": "{\"uri\": \"http://localhost:4000/pong\", \"method\": \"PUT\", \"body\": { \"data\": { \"delay\": \"{{delay}}\"} } }",
+     "is_pipeline": true
+   }
+ ]
+}

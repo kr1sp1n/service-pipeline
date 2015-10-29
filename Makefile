@@ -20,7 +20,7 @@ node_modules: package.json
 clean:
 	@rm -rf node_modules
 
-clean_seeds:
+clean_seed:
 	@curl -X DELETE $(PIPELINE_ENDPOINT)/123
 	@curl -X DELETE $(PIPELINE_ENDPOINT)/234
 	@curl -X DELETE $(PIPELINE_ENDPOINT)/345
@@ -28,8 +28,10 @@ clean_seeds:
 	@curl -X DELETE $(PIPELINE_ENDPOINT)/create_hitfox_project
 	@curl -X DELETE $(PIPELINE_ENDPOINT)/create_hitfox_test_project
 	@curl -X DELETE $(PIPELINE_ENDPOINT)/create_github_develop_branch
+	@curl -X DELETE $(PIPELINE_ENDPOINT)/ping
+	@curl -X DELETE $(PIPELINE_ENDPOINT)/pong
 
-seeds:
+seed:
 	@curl -X POST $(PIPELINE_ENDPOINT)/ -H "Content-Type: application/json" -d @test/fixtures/pipe_123.json
 	@curl -X POST $(PIPELINE_ENDPOINT)/ -H "Content-Type: application/json" -d @test/fixtures/pipe_234.json
 	@curl -X POST $(PIPELINE_ENDPOINT)/ -H "Content-Type: application/json" -d @test/fixtures/pipe_345.json
@@ -37,5 +39,7 @@ seeds:
 	@curl -X POST $(PIPELINE_ENDPOINT)/ -H "Content-Type: application/json" -d @test/fixtures/pipe_create_hitfox_project.json
 	@curl -X POST $(PIPELINE_ENDPOINT)/ -H "Content-Type: application/json" -d @test/fixtures/pipe_create_hitfox_test_project.json
 	@curl -X POST $(PIPELINE_ENDPOINT)/ -H "Content-Type: application/json" -d @test/fixtures/pipe_create_github_develop_branch.json
+	@curl -X POST $(PIPELINE_ENDPOINT)/ -H "Content-Type: application/json" -d @test/fixtures/pipe_ping.json
+	@curl -X POST $(PIPELINE_ENDPOINT)/ -H "Content-Type: application/json" -d @test/fixtures/pipe_pong.json
 
 .PHONY: all install clean

@@ -1,3 +1,4 @@
+var debug = require('debug')('pipeline:server')
 var express = require('express')
 var http = require('http')
 var router = require(__dirname + '/router.js')
@@ -10,5 +11,5 @@ app.use('/', router)
 
 var server = http.createServer(app)
 server.listen(app.get('port'), function () {
-  console.log('Node app is running on port', app.get('port'))
+  debug('Node app is running on port %s', app.get('port'))
 })
