@@ -1,0 +1,39 @@
+pipeline:
+  image: kr1sp1n/service-pipeline
+  ports:
+    - "4000:4000"
+  dns: 172.17.42.1
+  environment:
+    - DEBUG=pipeline*
+    - ENDPOINT=http://pipeline-1.pipeline.docker:4000
+    - HTTP_REQUEST_SERVICE=http://http-1.http.docker:3030
+    - DNSDOCK_NAME=pipeline-1
+    - DNSDOCK_IMAGE=pipeline
+
+# bi-directional linking
+dnsdock:
+ image: tonistiigi/dnsdock
+ volumes:
+ - /var/run/docker.sock:/run/docker.sock
+ ports:
+ - 172.17.42.1:53:53/udp
+
+http_request:
+  image: kr1sp1n/service-http-request
+  ports:
+    - "3030:3030"
+  dns: 172.17.42.1
+  environment:
+    - DEBUG=http*
+    - DNSDOCK_NAME=http-1
+    - DNSDOCK_IMAGE=http
+
+delay:
+  image: kr1sp1n/service-delay
+  ports:
+    - "5005:5005"
+  dns: 172.17.42.1
+  environment:
+    - DEBUG=delay*
+    - DNSDOCK_NAME=delay-1
+    - DNSDOCK_IMAGE=delay

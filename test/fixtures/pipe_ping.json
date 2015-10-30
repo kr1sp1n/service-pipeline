@@ -3,8 +3,11 @@
  "name": "Ping",
  "steps": [
    {
-     "template": "{\"uri\": \"http://localhost:4000/pong\", \"method\": \"PUT\", \"body\": { \"data\": { \"delay\": \"{{delay}}\"} } }",
-     "is_pipeline": true
+     "template": "{\"uri\": \"{{pipeline_service}}/pong\", \"method\": \"PUT\", \"body\": { \"data\": { \"delay\": \"{{delay}}\", \"delay_service\": \"{{delay_service}}\" } } }",
+     "is_pipeline": true,
+     "defaults": {
+       "pipeline_service": "http://localhost:4000"
+     }
    }
  ]
 }

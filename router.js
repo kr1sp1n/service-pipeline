@@ -7,7 +7,7 @@ var request = require('request')
 request = request.defaults({ json: true })
 var Handlebars = require('handlebars')
 
-var http_request_service = 'http://localhost:3000'
+var http_request_service = process.env['HTTP_REQUEST_SERVICE'] || 'http://localhost:3030'
 var router = express.Router()
 router.use(bodyParser.json())
 
