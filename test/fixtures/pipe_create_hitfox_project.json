@@ -21,21 +21,8 @@
      "template": { "uri": "https://raw.githubusercontent.com/kr1sp1n/http-request-templates/master/github/create_github_org_team.txt" }
    },
    {
-     "template": { "uri": "https://raw.githubusercontent.com/kr1sp1n/http-request-templates/master/github/get_github_repo_branch.txt" },
-     "defaults": {
-       "github": {
-         "repo_branch": "master"
-       }
-     },
-     "response": { "sha": "{{body.commit.sha}}"}
-   },
-   {
-     "template": { "uri": "https://raw.githubusercontent.com/kr1sp1n/http-request-templates/master/github/create_github_repo_branch.txt" },
-     "defaults": {
-       "github": {
-         "repo_branch": "develop"
-       }
-     }
+     "template": { "uri": "https://raw.githubusercontent.com/kr1sp1n/http-request-templates/master/pipelines/create_develop_branch.txt" },
+     "is_pipeline": true
    }
  ]
 }

@@ -8,13 +8,12 @@ request = request.defaults({ json: true })
 var Handlebars = require('handlebars')
 var async = require('async')
 
+var Pipeline = require(__dirname + '/src/pipeline.js')
+var Trigger = require(__dirname + '/src/trigger.js')
+
 var http_request_service = process.env['HTTP_REQUEST_SERVICE'] || 'http://localhost:3030'
 var router = express.Router()
 router.use(bodyParser.json())
-
-var pipelines = []
-// save every pipeline triggering
-var triggers = []
 
 // parse or generate correlation id
 var parseCID = function (req, res, next) {
@@ -24,43 +23,7 @@ var parseCID = function (req, res, next) {
   next()
 }
 
-var validatePipeline = function (req, res, next) {
-  var body = req.body
-  var id = body.id || uuid.v1()
-  var name = body.name
-  var result = _.result(_.find(pipelines, 'name', name), 'name')
-  var description = body.description || ''
-  var steps = body.steps || []
-  var globals = body.globals || {}
-  var callbacks = body.callbacks || {}
-  if (result) {
-    return next(new Error('Pipeline with name: ' + name + ' already exists').toString())
-  }
-  req.pipeline = {
-    id: id,
-    name: name,
-    description: description,
-    steps: steps,
-    globals: globals,
-    callbacks: callbacks
-  }
-  next()
-}
-
-var findPipeline = function (req, res, next) {
-  var id = req.params.id
-  var found = _.find(pipelines, 'id', id)
-  if (!found) {
-    return next(new Error('Pipeline with id: ' + id + ' not found').toString())
-  }
-  req.pipeline = found
-  next()
-}
-
-var findTrigger = function (req, res, next) {
-  req.trigger = _.find(triggers, 'cid', req.cid)
-  next()
-}
+router.use(parseCID)
 
 var http_request = function (data, done) {
   var opts = {
@@ -95,14 +58,13 @@ var handleTemplate = function (template, done) {
 }
 
 // POST new pipeline
-router.post('/', validatePipeline, function (req, res) {
-  pipelines.push(req.pipeline)
+router.post('/', Pipeline.create, function (req, res) {
   res.send(req.pipeline)
 })
 
 // GET all pipelines
-router.get('/', function (req, res) {
-  res.send(pipelines)
+router.get('/', Pipeline.all, function (req, res) {
+  res.send(req.pipelines)
 })
 
 // lodash extension to map MustacheStatement.path.parts to object
@@ -131,8 +93,9 @@ var extractParams = function (template) {
   .map(function (n) {
     return n.path.parts
   })
-  .nest()
   .value()
+  // TODO fix nested params
+  // .nest()
 }
 
 var prepareFetchTemplates = function (steps) {
@@ -153,7 +116,7 @@ var prepareFetchTemplates = function (steps) {
 }
 
 // GET pipeline by its id
-router.get('/:id', findPipeline, function (req, res) {
+router.get('/:id', Pipeline.find, function (req, res) {
   var steps = req.pipeline.steps
   async.parallel(prepareFetchTemplates(steps), function (err, result) {
     if (err) return debug(err)
@@ -162,53 +125,27 @@ router.get('/:id', findPipeline, function (req, res) {
 })
 
 // DELETE pipeline by its id
-router.delete('/:id', function (req, res) {
-  var id = req.params.id
-  var pipeline = _.remove(pipelines, function (n) {
-    return n.id === id
-  })
-  res.send(pipeline[0])
+router.delete('/:id', Pipeline.remove, function (req, res) {
+  res.send(req.pipeline)
 })
 
-router.post('/done', parseCID, function (req, res) {
+router.post('/done', function (req, res) {
   debug('\nDONE', req.cid)
   debug(req.body)
   res.send()
 })
 
-router.post('/fail', parseCID, function (req, res) {
+router.post('/fail', function (req, res) {
   debug('\nFAIL', req.cid)
   debug(req.body)
   res.send()
 })
 
 // PUT something in a pipeline
-router.put('/:id', findPipeline, parseCID, findTrigger, function (req, res) {
+router.put('/:id', Pipeline.find, Trigger.createOrProceed, function (req, res) {
   debug('Trigger %s', req.pipeline.name)
-  var globals = req.pipeline.globals || {}
-  if (!req.trigger) {
-    var data = req.body.data || {}
-    var callbacks = req.body.callbacks || {}
-    req.trigger = {
-      cid: req.cid,
-      data: _.cloneDeep(data),
-      callbacks: _.cloneDeep(callbacks),
-      steps: _.cloneDeep(req.pipeline.steps),
-      step_index: 0,
-      steps_done: [],
-      steps_pending: _.cloneDeep(req.pipeline.steps)
-    }
-    // assume it is the first call
-    triggers.push(req.trigger)
-    // debug('Start pipeline triggered with cid: ', req.cid)
-  } else {
-    // debug('Proceed pipeline triggered with cid:', req.cid)
-    var last_step = req.trigger.steps[req.trigger.step_index]
-    last_step.response = req.body
-    req.trigger.steps_done.push(last_step)
-    req.trigger.step_index += 1
-  }
   res.send(req.trigger)
+  var globals = req.pipeline.globals || {}
   var step = req.trigger.steps_pending.shift()
   // check if more steps
   if (!step) {
@@ -236,8 +173,17 @@ router.put('/:id', findPipeline, parseCID, findTrigger, function (req, res) {
       if (err) return debug(err)
       var defaults = step.defaults || {}
       var is_pipeline = step.is_pipeline || false
-      // _.cloneDeep(req.body)
-      var data = _.defaultsDeep(_.cloneDeep(req.trigger.data), defaults, globals)
+      var data = _.defaultsDeep(_.cloneDeep(req.trigger.data), defaults, globals, _.cloneDeep(req.body))
+
+      // debug('globals')
+      // debug(globals)
+      // debug('defaults')
+      // debug(defaults)
+      // debug('req.trigger.data')
+      // debug(_.cloneDeep(req.trigger.data))
+      // debug('req.body')
+      // debug(_.cloneDeep(req.body))
+
       var template = Handlebars.compile(body)
       var result = template(data)
       debug('Template:')
