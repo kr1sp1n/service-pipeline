@@ -6,6 +6,9 @@ var validate = function (opts) {
   return function (req, res, next) {
     var body = req.body
     var name = body.name
+    if (!name || name === '') {
+      return next(new Error('Pipeline with no name is not allowed'))
+    }
     var result = _.result(_.find(opts.pipelines, 'name', name), 'name')
     if (result) {
       return next(new Error('Pipeline with name ' + name + ' already exists'))
@@ -14,12 +17,12 @@ var validate = function (opts) {
   }
 }
 
-var item = function (opts) {
+var newItem = function (opts) {
   return function (req, res, next) {
     var data = req.body
     req.pipeline = {
       id: data.id || uuid.v1(),
-      name: data.name || '',
+      name: data.name,
       description: data.description || '',
       steps: data.steps || [],
       globals: data.globals || {},
@@ -38,7 +41,7 @@ var add = function (opts) {
 }
 
 var create = function (opts) {
-  return [validate(opts), item(opts), add(opts)]
+  return [validate(opts), newItem(opts), add(opts)]
 }
 
 var find = function (opts) {
@@ -75,6 +78,7 @@ module.exports = function (opts) {
   return {
     validate: validate(config),
     create: create(config),
+    newItem: newItem(config),
     find: find(config),
     all: all(config),
     remove: remove(config)
