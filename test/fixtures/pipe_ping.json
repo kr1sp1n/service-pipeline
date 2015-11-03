@@ -6,6 +6,8 @@
      "template": "{\"uri\": \"{{pipeline_service}}/pong\", \"method\": \"PUT\", \"body\": { \"data\": { \"delay\": \"{{delay}}\", \"delay_service\": \"{{delay_service}}\" } } }",
      "is_pipeline": true,
      "defaults": {
+       "delay": 3000,
+       "delay_service": "http://localhost:5005",
        "pipeline_service": "http://localhost:4000"
      }
    }

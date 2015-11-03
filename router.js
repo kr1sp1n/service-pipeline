@@ -6,6 +6,7 @@ var _ = require('lodash')
 var request = require('request')
 request = request.defaults({ json: true })
 var Handlebars = require('handlebars')
+var async = require('async')
 
 var http_request_service = process.env['HTTP_REQUEST_SERVICE'] || 'http://localhost:3030'
 var router = express.Router()
@@ -71,22 +72,21 @@ var http_request = function (data, done) {
 }
 
 var handleTemplate = function (template, done) {
-  debug('handle template')
   if (_.isString(template)) {
-    debug('template is string')
+    // debug('template is string')
     done(null, template)
   }
   if (_.isObject(template)) {
-    debug('template is object')
+    // debug('template is object')
     var opts = template
     opts.json = false
-    debug('do http request with')
+    // debug('do http request with')
     debug(opts)
     request(opts, function (err, response, body) {
-      debug('...response')
+      // debug('...response')
       debug(body)
       if (_.isObject(body)) {
-        debug('body is object')
+        // debug('body is object')
         body = JSON.stringify(body)
       }
       done(err, body)
@@ -105,9 +105,60 @@ router.get('/', function (req, res) {
   res.send(pipelines)
 })
 
+// lodash extension to map MustacheStatement.path.parts to object
+_.mixin({
+  nest: function (collection) {
+    return _(collection)
+    .groupBy(function (n) {
+      return n[0]
+    })
+    .mapValues(function (values, key) {
+      if (values.length === 1) return null
+      return _.nest(_(values).map(function (n) {
+        return [n.pop()]
+      }).value())
+    })
+    .value()
+  }
+})
+
+var extractParams = function (template) {
+  var ast = Handlebars.parse(template)
+  return _.chain(ast.body)
+  .filter(function (m) {
+    return m.type === 'MustacheStatement'
+  })
+  .map(function (n) {
+    return n.path.parts
+  })
+  .nest()
+  .value()
+}
+
+var prepareFetchTemplates = function (steps) {
+  return _.map(steps, function (step) {
+    step.params = {}
+    if (_.isObject(step.template)) {
+      var opts = step.template
+      opts.json = false
+      return function (callback) {
+        request(opts, function (err, response, body) {
+          if (err) return callback(err)
+          step.params = extractParams(body)
+          callback(null)
+        })
+      }
+    }
+  })
+}
+
 // GET pipeline by its id
 router.get('/:id', findPipeline, function (req, res) {
-  res.send(req.pipeline)
+  var steps = req.pipeline.steps
+  async.parallel(prepareFetchTemplates(steps), function (err, result) {
+    if (err) return debug(err)
+    res.send(req.pipeline)
+  })
 })
 
 // DELETE pipeline by its id
@@ -120,20 +171,20 @@ router.delete('/:id', function (req, res) {
 })
 
 router.post('/done', parseCID, function (req, res) {
-  debug('DONE', req.cid)
+  debug('\nDONE', req.cid)
   debug(req.body)
   res.send()
 })
 
 router.post('/fail', parseCID, function (req, res) {
-  debug('FAIL', req.cid)
+  debug('\nFAIL', req.cid)
   debug(req.body)
   res.send()
 })
 
 // PUT something in a pipeline
 router.put('/:id', findPipeline, parseCID, findTrigger, function (req, res) {
-  debug('pipeline %s triggered', req.pipeline.name)
+  debug('Trigger %s', req.pipeline.name)
   var globals = req.pipeline.globals || {}
   if (!req.trigger) {
     var data = req.body.data || {}
@@ -149,9 +200,9 @@ router.put('/:id', findPipeline, parseCID, findTrigger, function (req, res) {
     }
     // assume it is the first call
     triggers.push(req.trigger)
-    debug('Start pipeline triggered with cid: ', req.cid)
+    // debug('Start pipeline triggered with cid: ', req.cid)
   } else {
-    debug('Proceed pipeline triggered with cid:', req.cid)
+    // debug('Proceed pipeline triggered with cid:', req.cid)
     var last_step = req.trigger.steps[req.trigger.step_index]
     last_step.response = req.body
     req.trigger.steps_done.push(last_step)
@@ -165,29 +216,34 @@ router.put('/:id', findPipeline, parseCID, findTrigger, function (req, res) {
     var cb = _.defaultsDeep(req.trigger.callbacks, req.pipeline.callbacks)
     var opts = cb['success']
     if (!opts) {
-      debug('No callback for success.')
+      // debug('No callback for success.')
     } else {
-      debug('Do final callback...')
+      // debug('Do final callback...')
       var response = req.trigger.steps_done[req.trigger.steps_done.length - 1].response
       var body = opts.body || {}
       opts.body = _.defaultsDeep(body, response)
+      // debug(opts)
+      debug('Callback:')
       debug(opts)
       http_request(opts, function (err, response, body) {
         if (err) debug(err)
-        debug('...final callback done')
+        // debug('...final callback done')
       })
     }
   } else {
+    debug('Step %s', req.trigger.step_index + 1)
     handleTemplate(step.template, function (err, body) {
-      if (err) debug(err)
+      if (err) return debug(err)
       var defaults = step.defaults || {}
       var is_pipeline = step.is_pipeline || false
       // _.cloneDeep(req.body)
       var data = _.defaultsDeep(_.cloneDeep(req.trigger.data), defaults, globals)
       var template = Handlebars.compile(body)
       var result = template(data)
-      debug('rendered:')
-      debug(result)
+      debug('Template:')
+      debug(body)
+      debug('Data:')
+      debug(data)
       try {
         result = JSON.parse(result)
       } catch (e) {
@@ -212,11 +268,11 @@ router.put('/:id', findPipeline, parseCID, findTrigger, function (req, res) {
       } else {
         result.callbacks = callbacks
       }
-      debug('Execute step %s', req.trigger.step_index)
+      debug('Rendered:')
       debug(result)
       http_request(result, function (err, response, body) {
-        debug('step response')
-        debug(body)
+        // debug('step response')
+        // debug(body)
         if (err) debug(err)
       })
     })

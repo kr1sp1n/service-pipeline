@@ -6,7 +6,7 @@
      "template": "{\"uri\": \"{{delay_service}}/?delay={{delay}}\"}",
      "defaults": {
        "delay_service": "http://localhost:5005",
-       "delay": 8000
+       "delay": 1000
      },
      "response": {
        "data": {
