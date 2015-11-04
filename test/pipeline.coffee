@@ -1,5 +1,4 @@
 
-sinon = require 'sinon'
 should = require 'should'
 
 describe 'Pipeline', ->
@@ -21,6 +20,11 @@ describe 'Pipeline', ->
 
 
   describe 'validate', ->
+
+    it 'should pass if req.body is valid', (done)->
+      p = Pipeline()
+      p.validate @req, @res, (err)=>
+        done err
 
     it 'should throw an error if name is already used', (done)->
       item = name: 'test1'

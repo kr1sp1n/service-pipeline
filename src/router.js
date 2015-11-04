@@ -1,7 +1,6 @@
 var debug = require('debug')('pipeline:router')
 var express = require('express')
 var bodyParser = require('body-parser')
-var uuid = require('uuid')
 var _ = require('lodash')
 var request = require('request')
 request = request.defaults({ json: true })
@@ -9,17 +8,15 @@ var Handlebars = require('handlebars')
 var async = require('async')
 
 var Pipeline = require(__dirname + '/pipeline.js')()
-var Trigger = require(__dirname + '/trigger.js')
+var Trigger = require(__dirname + '/trigger.js')()
 
 var http_request_service = process.env['HTTP_REQUEST_SERVICE'] || 'http://localhost:3030'
 var router = express.Router()
 router.use(bodyParser.json())
 
-// parse or generate correlation id
+// parse trigger correlation id
 var parseCID = function (req, res, next) {
-  var cid = req.headers['x-cid']
-  if (!cid) { cid = uuid.v1() }
-  req.cid = cid
+  req.cid = req.headers['x-cid']
   next()
 }
 
