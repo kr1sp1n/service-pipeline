@@ -2,11 +2,13 @@
   "name": "service-pipeline",
   "version": "0.0.1",
   "description": "Pipelines as a service",
-  "main": "index.js",
+  "main": "./src/server.js",
   "scripts": {
     "test": "$(npm bin)/mocha --watch",
-    "start": "node server.js",
-    "dev": "$(npm bin)/node-dev server.js"
+    "start": "node ./src/server.js",
+    "dev": "$(npm bin)/node-dev ./src/server.js",
+    "cov": "$(npm bin)/mocha -R mocha-spec-cov-alt",
+    "html-cov": "$(npm bin)/mocha -R html-cov > coverage.html"
   },
   "repository": {
     "type": "git",
@@ -35,10 +37,27 @@
     "uuid": "^2.0.1"
   },
   "devDependencies": {
+    "blanket": "^1.1.9",
     "coffee-script": "^1.10.0",
     "mocha": "^2.3.3",
     "node-dev": "^2.7.1",
     "should": "^7.1.1",
-    "sinon": "^1.17.2"
+    "sinon": "^1.17.2",
+    "mocha-spec-cov-alt": "git://github.com/kr1sp1n/mocha-spec-cov-alt.git#master"
+  },
+  "config": {
+    "blanket": {
+      "pattern": [
+        ""
+      ],
+      "loader": "./node-loaders/coffee-script",
+      "data-cover-never": [
+        "node_modules",
+        "test"
+      ],
+      "spec-cov": {
+        "threshold": 100
+      }
+    }
   }
 }

@@ -8,8 +8,8 @@ request = request.defaults({ json: true })
 var Handlebars = require('handlebars')
 var async = require('async')
 
-var Pipeline = require(__dirname + '/src/pipeline.js')()
-var Trigger = require(__dirname + '/src/trigger.js')
+var Pipeline = require(__dirname + '/pipeline.js')()
+var Trigger = require(__dirname + '/trigger.js')
 
 var http_request_service = process.env['HTTP_REQUEST_SERVICE'] || 'http://localhost:3030'
 var router = express.Router()

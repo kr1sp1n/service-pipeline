@@ -49,7 +49,7 @@ var find = function (opts) {
     var id = req.params.id
     var found = _.find(opts.pipelines, 'id', id)
     if (!found) {
-      return next(new Error('Pipeline with id: ' + id + ' not found').toString())
+      return next(new Error('Pipeline with id ' + id + ' not found'))
     }
     req.pipeline = found
     next()
@@ -62,6 +62,10 @@ var remove = function (opts) {
     req.pipeline = _.remove(opts.pipelines, function (n) {
       return n.id === id
     })[0]
+    if (!req.pipeline) {
+      return next(new Error('Pipeline with id ' + id + ' does not exist'))
+    }
+    next()
   }
 }
 
@@ -81,6 +85,7 @@ module.exports = function (opts) {
     newItem: newItem(config),
     find: find(config),
     all: all(config),
+    add: add(config),
     remove: remove(config)
   }
 }

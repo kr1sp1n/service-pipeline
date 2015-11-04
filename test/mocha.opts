@@ -1,4 +1,6 @@
 --compilers coffee:coffee-script/register
+--require blanket
 --reporter spec
 --colors
 --growl
+--recursive
