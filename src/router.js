@@ -41,10 +41,10 @@ var handleTemplate = function (template, done) {
     var opts = template
     opts.json = false
     // debug('do http request with')
-    debug(opts)
+    // debug(opts)
     request(opts, function (err, response, body) {
       // debug('...response')
-      debug(body)
+      // debug(body)
       if (_.isObject(body)) {
         // debug('body is object')
         body = JSON.stringify(body)
@@ -138,6 +138,22 @@ router.post('/fail', function (req, res) {
   res.send()
 })
 
+// handle failure
+router.post('/:id/fail', Pipeline.find, Trigger.find, Trigger.fail, function (req, res) {
+  res.send(req.trigger)
+  var cb = _.defaultsDeep(req.trigger.callbacks, req.pipeline.callbacks)
+  var opts = cb['fail']
+  if (!opts) {
+    debug('No fail callback.')
+  } else {
+    debug('Callback fail URI...')
+    http_request(opts, function (err, response, body) {
+      debug('...done.')
+      if (err) debug(err)
+    })
+  }
+})
+
 // PUT something in a pipeline
 router.put('/:id', Pipeline.find, Trigger.createOrProceed, function (req, res) {
   debug('Trigger %s', req.pipeline.name)
@@ -150,15 +166,15 @@ router.put('/:id', Pipeline.find, Trigger.createOrProceed, function (req, res) {
     var cb = _.defaultsDeep(req.trigger.callbacks, req.pipeline.callbacks)
     var opts = cb['success']
     if (!opts) {
-      // debug('No callback for success.')
+      debug('No success callback.')
     } else {
       // debug('Do final callback...')
       var response = req.trigger.steps_done[req.trigger.steps_done.length - 1].response
       var body = opts.body || {}
       opts.body = _.defaultsDeep(body, response)
       // debug(opts)
-      debug('Callback:')
-      debug(opts)
+      // debug('Callback:')
+      // debug(opts)
       http_request(opts, function (err, response, body) {
         if (err) debug(err)
         // debug('...final callback done')
@@ -183,17 +199,17 @@ router.put('/:id', Pipeline.find, Trigger.createOrProceed, function (req, res) {
 
       var template = Handlebars.compile(body)
       var result = template(data)
-      debug('Template:')
-      debug(body)
-      debug('Data:')
-      debug(data)
+      // debug('Template:')
+      // debug(body)
+      // debug('Data:')
+      // debug(data)
       try {
         result = JSON.parse(result)
       } catch (e) {
         debug(e)
       }
       var headers = {
-        'X-CID': req.cid
+        'X-CID': req.trigger.cid
       }
       // mid-step callbacks
       var callbacks = {
@@ -203,7 +219,13 @@ router.put('/:id', Pipeline.find, Trigger.createOrProceed, function (req, res) {
           headers: headers,
           response: step.response
         },
-        'fail': _.defaultsDeep(req.trigger.callbacks['fail'], { headers: headers })
+        'fail': {
+          uri: [req.app.get('endpoint'), req.pipeline.id, 'fail'].join('/'),
+          method: 'POST',
+          headers: headers,
+          response: step.response
+        }
+        // _.defaultsDeep(req.trigger.callbacks['fail'], { headers: headers })
       }
       if (is_pipeline) {
         result.body = result.body || {}
@@ -211,8 +233,8 @@ router.put('/:id', Pipeline.find, Trigger.createOrProceed, function (req, res) {
       } else {
         result.callbacks = callbacks
       }
-      debug('Rendered:')
-      debug(result)
+      // debug('Rendered:')
+      // debug(result)
       http_request(result, function (err, response, body) {
         // debug('step response')
         // debug(body)

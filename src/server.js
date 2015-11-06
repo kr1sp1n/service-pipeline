@@ -13,10 +13,5 @@ app.use('/', router)
 
 var server = http.createServer(app)
 server.app = app
-if (!module.parent) {
-  server.listen(app.get('port'), function () {
-    debug('Node app is running on port %s', app.get('port'))
-  })
-}
 
 module.exports = server

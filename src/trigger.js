@@ -29,7 +29,12 @@ var add = function (opts) {
 
 var find = function (opts) {
   return function (req, res, next) {
-    req.trigger = _.find(opts.triggers, 'cid', req.cid)
+    if (req.cid !== undefined) {
+      var found = _.find(opts.triggers, 'cid', req.cid)
+      if (found !== undefined) {
+        req.trigger = found
+      }
+    }
     next()
   }
 }
@@ -45,6 +50,7 @@ var create = function (opts) {
 
 var createOrProceed = function (opts) {
   return [find(opts), function (req, res, next) {
+    debug('createOrProceed')
     if (!req.trigger) {
       // assume it is the first call
       debug('create for %s', req.pipeline.id)
@@ -52,12 +58,21 @@ var createOrProceed = function (opts) {
     } else {
       debug('proceed')
       req.last_step = req.trigger.steps[req.trigger.step_index]
-      req.last_step.response = req.body
-      req.trigger.steps_done.push(req.last_step)
-      req.trigger.step_index += 1
+      if (req.last_step !== undefined) {
+        req.last_step.response = req.body
+        req.trigger.steps_done.push(req.last_step)
+        req.trigger.step_index += 1
+      }
     }
     next()
   }]
+}
+
+var fail = function (opts) {
+  return function (req, res, next) {
+    req.trigger.failed = true
+    next()
+  }
 }
 
 module.exports = function (opts) {
@@ -67,6 +82,8 @@ module.exports = function (opts) {
     find: find(config),
     newItem: newItem(config),
     add: add(config),
-    createOrProceed: createOrProceed(config)
+    create: create(config),
+    createOrProceed: createOrProceed(config),
+    fail: fail(config)
   }
 }

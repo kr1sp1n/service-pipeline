@@ -2,11 +2,11 @@
   "name": "service-pipeline",
   "version": "0.0.1",
   "description": "Pipelines as a service",
-  "main": "./src/server.js",
+  "main": "index.js",
   "scripts": {
     "test": "$(npm bin)/mocha --watch",
-    "start": "node ./src/server.js",
-    "dev": "$(npm bin)/node-dev ./src/server.js",
+    "start": "node index.js",
+    "dev": "$(npm bin)/node-dev index.js",
     "cov": "$(npm bin)/mocha -R mocha-spec-cov-alt",
     "cov-html": "$(npm bin)/mocha -R html-cov > coverage.html"
   },
