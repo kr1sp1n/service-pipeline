@@ -75,6 +75,11 @@ var fail = function (opts) {
   }
 }
 
+var parseCID = function (req, res, next) {
+  req.cid = req.headers['x-cid']
+  next()
+}
+
 module.exports = function (opts) {
   var config = opts || {}
   config.triggers = config.triggers || []
@@ -84,6 +89,7 @@ module.exports = function (opts) {
     add: add(config),
     create: create(config),
     createOrProceed: createOrProceed(config),
-    fail: fail(config)
+    fail: fail(config),
+    parseCID: parseCID
   }
 }

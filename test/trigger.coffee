@@ -140,3 +140,13 @@ describe 'Trigger', ->
       t.fail @req, @res, (err)=>
         @req.trigger.should.have.property 'failed', true
         done err
+
+
+  describe 'parseCID', ->
+
+    it 'should parse a CID from a trigger out of the header', (done)->
+      @req.headers = 'x-cid': '123'
+      t = Trigger()
+      t.parseCID @req, @res, (err)=>
+        @req.cid.should.equal '123'
+        done err
