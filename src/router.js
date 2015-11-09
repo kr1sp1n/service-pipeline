@@ -11,41 +11,13 @@ var Pipeline = require(__dirname + '/pipeline.js')()
 var Trigger = require(__dirname + '/trigger.js')()
 
 module.exports = function (opts) {
-  var http_request_service = opts.http_request_service || 'http://localhost:3030'
+  var http_request = require(__dirname + '/http_request.js')({
+    http_request_service: opts.http_request_service || 'http://localhost:3030'
+  })
   var router = express.Router()
   router.use(bodyParser.json())
 
-  var http_request = function (data, done) {
-    var opts = {
-      method: 'POST',
-      uri: http_request_service,
-      body: data
-    }
-    request(opts, done)
-  }
-
-  var handleTemplate = function (template, done) {
-    if (_.isString(template)) {
-      // debug('template is string')
-      done(null, template)
-    }
-    if (_.isObject(template)) {
-      // debug('template is object')
-      var opts = template
-      opts.json = false
-      // debug('do http request with')
-      // debug(opts)
-      request(opts, function (err, response, body) {
-        // debug('...response')
-        // debug(body)
-        if (_.isObject(body)) {
-          // debug('body is object')
-          body = JSON.stringify(body)
-        }
-        done(err, body)
-      })
-    }
-  }
+  var handleTemplate = require(__dirname + '/handleTemplate.js')()
 
   // POST new pipeline
   router.post('/', Pipeline.create, function (req, res) {
