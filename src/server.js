@@ -3,7 +3,8 @@ var express = require('express')
 var http = require('http')
 
 var router_config = {
-  http_request_service: process.env['HTTP_REQUEST_SERVICE']
+  http_request_service: process.env['HTTP_REQUEST_SERVICE'],
+  firebase_endpoint: process.env['FIREBASE_ENDPOINT']
 }
 
 var router = require(__dirname + '/router.js')(router_config)

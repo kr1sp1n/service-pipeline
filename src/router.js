@@ -7,10 +7,9 @@ request = request.defaults({ json: true })
 var Handlebars = require('handlebars')
 var async = require('async')
 
-var Pipeline = require(__dirname + '/pipeline.js')()
-var Trigger = require(__dirname + '/trigger.js')()
-
 module.exports = function (opts) {
+  var Pipeline = require(__dirname + '/pipeline.js')(opts)
+  var Trigger = require(__dirname + '/trigger.js')()
   var http_request = require(__dirname + '/http_request.js')({
     http_request_service: opts.http_request_service || 'http://localhost:3030'
   })
