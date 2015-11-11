@@ -28,23 +28,6 @@ module.exports = function (opts) {
     res.send(req.pipelines)
   })
 
-  // lodash extension to map MustacheStatement.path.parts to object
-  _.mixin({
-    nest: function (collection) {
-      return _(collection)
-      .groupBy(function (n) {
-        return n[0]
-      })
-      .mapValues(function (values, key) {
-        if (values.length === 1) return null
-        return _.nest(_(values).map(function (n) {
-          return [n.pop()]
-        }).value())
-      })
-      .value()
-    }
-  })
-
   var extractParams = function (template) {
     var ast = Handlebars.parse(template)
     return _.chain(ast.body)
@@ -52,16 +35,15 @@ module.exports = function (opts) {
       return m.type === 'MustacheStatement'
     })
     .map(function (n) {
-      return n.path.parts
+      return n.path.original
     })
     .value()
-    // TODO fix nested params
-    // .nest()
   }
 
   var prepareFetchTemplates = function (steps) {
     return _.map(steps, function (step) {
       step.params = {}
+      step.request = null
       if (_.isObject(step.template)) {
         var opts = step.template
         opts.json = false
@@ -69,6 +51,9 @@ module.exports = function (opts) {
           request(opts, function (err, response, body) {
             if (err) return callback(err)
             step.params = extractParams(body)
+            var template = Handlebars.compile(body)
+            var result = template(step.params)
+            step.request = JSON.parse(result)
             callback(null)
           })
         }
