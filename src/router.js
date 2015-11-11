@@ -76,17 +76,17 @@ module.exports = function (opts) {
   })
 
   //
-  // router.post('/done', function (req, res) {
-  //   debug('\nDONE', req.cid)
-  //   debug(req.body)
-  //   res.send()
-  // })
-  //
-  // router.post('/fail', function (req, res) {
-  //   debug('\nFAIL', req.cid)
-  //   debug(req.body)
-  //   res.send()
-  // })
+  router.post('/done', Trigger.parseCID, function (req, res) {
+    debug('\nDONE', req.cid)
+    debug(req.body)
+    res.send()
+  })
+
+  router.post('/fail', function (req, res) {
+    debug('\nFAIL')
+    debug(req.body)
+    res.send()
+  })
 
   // handle failure
   router.post('/:id/fail', Pipeline.find, Trigger.parseCID, Trigger.find, Trigger.fail, function (req, res) {
@@ -97,6 +97,8 @@ module.exports = function (opts) {
       debug('No fail callback.')
     } else {
       debug('Callback fail URI...')
+      debug(req.body)
+      opts.body = req.body
       http_request(opts, function (err, response, body) {
         debug('...done.')
         if (err) debug(err)
@@ -136,6 +138,7 @@ module.exports = function (opts) {
         if (err) return debug(err)
         var defaults = step.defaults || {}
         var is_pipeline = step.is_pipeline || false
+        // TODO fix _.cloneDeep(req.body)
         var data = _.defaultsDeep(_.cloneDeep(req.trigger.data), defaults, globals, _.cloneDeep(req.body))
 
         // debug('globals')
@@ -183,8 +186,8 @@ module.exports = function (opts) {
         } else {
           result.callbacks = callbacks
         }
-        // debug('Rendered:')
-        // debug(result)
+        debug('Rendered:')
+        debug(result)
         http_request(result, function (err, response, body) {
           // debug('step response')
           // debug(body)

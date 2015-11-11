@@ -2,15 +2,11 @@
 var express = require('express')
 var http = require('http')
 
-var router_config = {
-  http_request_service: process.env['HTTP_REQUEST_SERVICE'],
-  firebase_endpoint: process.env['FIREBASE_ENDPOINT']
-}
-
-var router = require(__dirname + '/router.js')(router_config)
+var config = require(__dirname + '/../config.js')
+var router = require(__dirname + '/router.js')(config)
 var app = express()
-var port = process.env['PORT'] || 4000
-var endpoint = process.env['ENDPOINT'] || 'http://localhost:' + port
+var port = config.port || 4000
+var endpoint = config.endpoint || 'http://localhost:' + port
 
 app.set('port', port)
 app.set('endpoint', endpoint)
