@@ -7,6 +7,14 @@ request = request.defaults({ json: true })
 var Handlebars = require('handlebars')
 var async = require('async')
 
+// json helper
+Handlebars.registerHelper('json', function (obj) {
+  if (obj === undefined) return '{}'
+  if (typeof obj === 'string') obj = JSON.parse(obj)
+  var str = JSON.stringify(obj)
+  return new Handlebars.SafeString(str)
+})
+
 module.exports = function (opts) {
   var Pipeline = require(__dirname + '/pipeline.js')(opts)
   var Trigger = require(__dirname + '/trigger.js')()
@@ -35,6 +43,7 @@ module.exports = function (opts) {
       return m.type === 'MustacheStatement'
     })
     .map(function (n) {
+      if (n.path.original === 'json') return n.params[0].original
       return n.path.original
     })
     .value()
@@ -76,8 +85,8 @@ module.exports = function (opts) {
   })
 
   //
-  router.post('/done', Trigger.parseCID, function (req, res) {
-    debug('\nDONE', req.cid)
+  router.post('/done', function (req, res) {
+    debug('\nDONE')
     debug(req.body)
     res.send()
   })
@@ -186,8 +195,8 @@ module.exports = function (opts) {
         } else {
           result.callbacks = callbacks
         }
-        debug('Rendered:')
-        debug(result)
+        // debug('Rendered:')
+        // debug(result)
         http_request(result, function (err, response, body) {
           // debug('step response')
           // debug(body)
