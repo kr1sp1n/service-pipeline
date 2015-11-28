@@ -29,10 +29,11 @@ var newItem = function (opts) {
       // id: data.id || uuid.v1(),
       name: data.name,
       description: data.description || '',
-      steps: data.steps || [],
       globals: data.globals || {},
+      steps: [],
       callbacks: data.callbacks || {}
     }
+    if (_.isArray(data.steps)) req.pipeline.steps = data.steps
     next()
   }
 }

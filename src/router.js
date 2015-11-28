@@ -62,6 +62,7 @@ module.exports = function (opts) {
             step.params = extractParams(body)
             var template = Handlebars.compile(body)
             var result = template(step.params)
+            // debug(result)
             step.request = JSON.parse(result)
             callback(null)
           })
@@ -118,6 +119,8 @@ module.exports = function (opts) {
   // PUT something in a pipeline
   router.put('/:id', Pipeline.find, Trigger.parseCID, Trigger.createOrProceed, function (req, res) {
     debug('Trigger %s', req.pipeline.name)
+    debug('REQ body')
+    debug(req.body)
     res.send(req.trigger)
     var globals = req.pipeline.globals || {}
     var step = req.trigger.steps_pending.shift()
@@ -129,13 +132,12 @@ module.exports = function (opts) {
       if (!opts) {
         debug('No success callback.')
       } else {
-        // debug('Do final callback...')
+        debug('Do final callback...')
         var response = req.trigger.steps_done[req.trigger.steps_done.length - 1].response
         var body = opts.body || {}
         opts.body = _.defaultsDeep(body, response)
-        // debug(opts)
         // debug('Callback:')
-        // debug(opts)
+        debug(opts)
         http_request(opts, function (err, response, body) {
           if (err) debug(err)
           // debug('...final callback done')
@@ -198,8 +200,6 @@ module.exports = function (opts) {
         // debug('Rendered:')
         // debug(result)
         http_request(result, function (err, response, body) {
-          // debug('step response')
-          // debug(body)
           if (err) debug(err)
         })
       })
